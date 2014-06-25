@@ -21,8 +21,10 @@ public final class DBAgent {
 	
 	public boolean connectRemoteMySQL() {
 		String url = "jdbc:mysql://acm.bjfu.edu.cn:3306/acmhome";
-		String user = "root";
-		String pass = "BJFUacmTEAM320";
+//		String user = "root";
+//		String pass = "BJFUacmTEAM320";
+		String user = "bjfuacm";
+		String pass = "acm320";
 		return connectMySQL(url, user, pass);
 	}
 
