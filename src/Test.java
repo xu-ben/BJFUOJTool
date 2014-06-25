@@ -6,7 +6,7 @@ public class Test {
 	/**
 	 * 文件读写代理对象
 	 */
-	private IOAgent fa = IOAgent.getInstance();
+	private IOAgent ioa = IOAgent.getInstance();
 
 	/**
 	 * 数据库操作代理对象
@@ -54,8 +54,7 @@ public class Test {
 	 * @param id
 	 */
 	private void getACCodeOfAContestToDir(int id) {
-
-		String[] namelist = getNameListOfAContest(id);
+		ArrayList<String> namelist = getNameListOfAContest(id);
 		String root = "H:\\tt";
 		String dir;
 		int k;
@@ -64,14 +63,14 @@ public class Test {
 		String solution_id;
 		ArrayList<String> ids;
 
-		for (int i = 0; i < namelist.length; i++) {
-			for (int j = 0; j < problemlist.length; j++) {
+		for (String name : namelist) {
+			for (int i = 0; i < problemlist.length; i++) {
 				dir = new String(root);
 				if (problemlist.length == 1) {
 
-				} else if (j == 0) {
+				} else if (i == 0) {
 					dir += "\\A题";
-				} else if (j == 1) {
+				} else if (i == 1) {
 					dir += "\\B题";
 				} else {
 					dir += "\\C题";
@@ -84,16 +83,16 @@ public class Test {
 				dir += "\\";
 
 				k = 1;
-				ids = getSolutionId(namelist[i], problemlist[j], k, id);
+				ids = getSolutionId(name, problemlist[i], k, id);
 				if (ids == null || ids.size() == 0) {
 					continue;
 				}
-				for (int ii = 0; ii < ids.size(); ii++) {
-					solution_id = ids.get(ii);
+				for (int j = 0; j < ids.size(); j++) {
+					solution_id = ids.get(j);
 					String code = getACodeBySolutionId(solution_id);
 					String date = getDateOfASolution(solution_id);
-					setCodeFile(dir, problemlist[j], date, "Accepted", code,
-							namelist[i]);
+					setCodeFile(dir, problemlist[i], date, "Accepted", code,
+							name);
 				}
 
 			}
@@ -112,6 +111,7 @@ public class Test {
 				"Output Limit Exceed", "Restrict Function",
 				"System Error(File)", "保留",
 				"RunTime Error(ARRAY_BOUNDS_EXCEEDED)" };
+
 		String[] namelist = getNameListOfAContest(id);
 		String root = "H:\\临时文件夹\\tt\\问题求解实验所有提交代码\\实验3\\";
 		String dir;
@@ -440,12 +440,10 @@ public class Test {
 	 * @param i
 	 * @return
 	 */
-	public String[] getNameListOfAContest(Integer id) {
-
+	public ArrayList<String> getNameListOfAContest(Integer id) {
 		ArrayList<String> namelist = new ArrayList<String>();
+		String sql = "select user_id from contest_status where contest_id = ? order by user_id";
 		try {
-			String sql = new String(
-					"select user_id from contest_status where contest_id = ? order by user_id");
 			PreparedStatement ps = dba.prepareStatement(sql);
 			ps.setString(1, id.toString());
 			ResultSet rs = ps.executeQuery();
@@ -455,14 +453,10 @@ public class Test {
 				namelist.add(name);
 			}
 		} catch (SQLException se) {
-			System.out.println("main sql" + se.toString());
+			System.err.println("main sql" + se.toString());
 			return null;
 		}
-		String[] rets = new String[namelist.size()];
-		for (int index = 0; index < namelist.size(); index++) {
-			rets[index] = namelist.get(index);
-		}
-		return rets;
+		return namelist;
 	}
 
 	public String getMyTime(String date) {
@@ -500,25 +494,7 @@ public class Test {
 		}
 		filePath += getMyTime(date);
 		filePath += "_" + result + ".cpp";
-		File f = new File(filePath.trim());
-		if (!f.exists()) {
-			try {
-				f.createNewFile();
-			} catch (IOException e) {
-				System.out.println(filePath + "\n竹仔");
-				System.exit(0);
-				// System.out.println(code);
-				return false;
-			}
-		}
-		try {
-			FileWriter fw = new FileWriter(f);
-			fw.write(code);
-			fw.flush();
-			fw.close();
-		} catch (IOException ioe) {
-			return false;
-		}
+		ioa.setFileText(filePath, code);
 		return true;
 	}
 

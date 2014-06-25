@@ -20,9 +20,6 @@ public final class ProblemOperator {
 	private DBAgent dba = DBAgent.getInstance();
 
 	private ProblemOperator() {
-		if(!dba.connectRemoteMySQL()) {
-			dba = null;
-		}
 	}
 	
 	public String getSampleOutputOfProblem(String pid) {

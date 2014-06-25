@@ -89,9 +89,7 @@ public final class SolutionOperator {
 	/**
 	 * 将OJ上所有代码取出保存到文件中,所有文件均放到path目录下
 	 */
-	@SuppressWarnings("unused")
-	private String saveAllCodeToFile(String path) {
-		String ret = new String();
+	private boolean saveAllCodeToFile(String path) {
 		String sql = "select problem_id, user_name, result, language, in_date, solution_id from solution";
 		String name = null;
 		try {
@@ -113,40 +111,11 @@ public final class SolutionOperator {
 			}
 		} catch (SQLException se) {
 			se.printStackTrace();
-			return null;
+			return false;
 		}
-		return ret;
+		return true;
 	}
 	
-	private String saveAllContestCodeToFile(String path, String contestid) {
-		String ret = new String();
-		String sql = "select problem_id, user_name, result, language, in_date, solution_id from solution";
-		String name = null;
-		try {
-			PreparedStatement ps = dba.prepareStatement(sql);
-			ResultSet rs = ps.executeQuery();
-			rs.beforeFirst();
-			while (rs.next()) {
-				String pid = rs.getString(1);
-				String user_name = rs.getString(2);
-				String result = getResultNameById(Integer.parseInt(rs
-						.getString(3)));
-				String ext = FILEEXTS[Integer.parseInt(rs.getString(4))];
-				String date = rs.getString(5).replaceAll("[: .]", "-");
-				name = String.format("%s_%s_%s_%s.%s", user_name, pid, result,
-						date, ext);
-				name = name.replaceAll(" ", "");
-				String code = getCodeBySolutionId(rs.getString(6));
-				ioa.setFileText(path + name, code);
-			}
-		} catch (SQLException se) {
-			se.printStackTrace();
-			return null;
-		}
-		return ret;
-	}
-	
-
 	public String getSolutionDetailById(String id) {
 		String ret = new String();
 		String code = getCodeBySolutionId(id);
@@ -197,12 +166,7 @@ public final class SolutionOperator {
 		SolutionOperator so = SolutionOperator.getInstance();
 		// so.getSolutionDetailById("4a4cfd8e3ff8d89301400096481a0007");
 		// so.genFileNameById("4a4cfd8e3ff8d89301400096481a0007");
-	
-		//so.saveAllCodeToFile("A:\\bjfuacmcode\\");
-		
-		
-		so.saveAllContestCodeToFile("X:\\cpp\\", "40");
-
+		so.saveAllCodeToFile("A:\\bjfuacmcode\\");
 	}
 
 }

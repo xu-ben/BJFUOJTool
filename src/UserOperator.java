@@ -23,10 +23,6 @@ public final class UserOperator {
 	private static UserOperator uo = null;
 
 	private UserOperator() {
-		if(!dba.connectRemoteMySQL()) {
-//		if(!dba.connectMySQL()) {
-			dba = null;
-		}
 	}
 	
 	public static synchronized UserOperator getInstance() {
