@@ -2,6 +2,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /**
  * 
@@ -59,6 +60,10 @@ public final class SolutionOperator {
 			}
 		}
 		return -1;
+	}
+	
+	public String[] getResultNames() {
+		return this.RESULTS;
 	}
 
 	/**
@@ -148,6 +153,62 @@ public final class SolutionOperator {
 		}
 		return ret;
 	}
+	
+	/**
+	 * 获取一个Solution的提交时间
+	 * @param solution_id
+	 * @return
+	 */
+	public String getDateOfASolution(String solution_id) {
+		String sql = "select in_date from solution where solution_id = ?";
+		try {
+			PreparedStatement ps = dba.prepareStatement(sql);
+			ps.setString(1, solution_id);
+			ResultSet rs = ps.executeQuery();
+			rs.beforeFirst();
+			String ans = null;
+			if (rs.next()) {
+				ans = rs.getString(1);
+				return ans;
+			}
+		} catch (SQLException se) {
+			se.printStackTrace();
+		}
+		return null;
+	}
+
+
+	/**
+	 * 通过(多个)Solution的详细信息取得其id(可能为多个)
+	 * @param user_name
+	 * @param problem_id
+	 * @param result
+	 * @param contest_id
+	 * @return
+	 */
+	public ArrayList<String> getSolutionIdByDetail(String user_name, int problem_id, int result, int contest_id) {
+		ArrayList<String> ids = new ArrayList<String>();
+		String sql = "select solution_id from solution where result = ? and contest_id = ? and user_name = ? and problem_id = ?";
+		try {
+			PreparedStatement ps = dba.prepareStatement(sql);
+			ps.setInt(1, result);
+			ps.setInt(2, contest_id);
+			ps.setString(3, user_name);
+			ps.setInt(4, problem_id);
+
+			ResultSet rs = ps.executeQuery();
+			rs.beforeFirst();
+			String ans = null;
+			while (rs.next()) {
+				ans = rs.getString(1).trim();
+				ids.add(ans);
+			}
+			return ids;
+		} catch (SQLException se) {
+			se.printStackTrace();
+			return null;
+		}
+	}
 
 	private SolutionOperator() {
 	}
@@ -158,6 +219,33 @@ public final class SolutionOperator {
 		}
 		return so;
 	}
+	
+	public boolean saveAllContestCodeToFile(String path, String contestid) {
+		String sql = "select problem_id, user_name, result, language, in_date, solution_id from solution";
+		String name = null;
+		try {
+			PreparedStatement ps = dba.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			rs.beforeFirst();
+			while (rs.next()) {
+				String pid = rs.getString(1);
+				String user_name = rs.getString(2);
+				String result = getResultNameById(Integer.parseInt(rs
+						.getString(3)));
+				String ext = FILEEXTS[Integer.parseInt(rs.getString(4))];
+				String date = rs.getString(5).replaceAll("[: .]", "-");
+				name = String.format("%s_%s_%s_%s.%s", user_name, pid, result,
+						date, ext);
+				name = name.replaceAll(" ", "");
+				String code = getCodeBySolutionId(rs.getString(6));
+				ioa.setFileText(path + name, code);
+			}
+		} catch (SQLException se) {
+			se.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * @param args
@@ -166,7 +254,7 @@ public final class SolutionOperator {
 		SolutionOperator so = SolutionOperator.getInstance();
 		// so.getSolutionDetailById("4a4cfd8e3ff8d89301400096481a0007");
 		// so.genFileNameById("4a4cfd8e3ff8d89301400096481a0007");
-		so.saveAllCodeToFile("A:\\bjfuacmcode\\");
+		so.saveAllCodeToFile("X:\\bjfuacmcode\\");
 	}
 
 }

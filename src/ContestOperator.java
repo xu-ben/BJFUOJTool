@@ -1,3 +1,4 @@
+import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +19,8 @@ public final class ContestOperator {
 	
 	private SolutionOperator so = SolutionOperator.getInstance();
 	
+	private IOAgent ioa = IOAgent.getInstance();
+	
 	private ContestOperator() {
 	}
 	
@@ -28,65 +31,177 @@ public final class ContestOperator {
 		return co;
 	}
 
-	public Integer[] getProblemList(Integer id) {
+	/**
+	 * 根据比赛号得到题目序号
+	 * @param cid
+	 * @return
+	 */
+	public ArrayList<Integer> getProblemidsOfAContest(Integer cid) {
+		String sql = "select problem_id from contest_problem where contest_id = ? order by problem_id";
 		try {
-			String sql = new String(
-					"select problem_id from contest_problem where contest_id = ? order by problem_id");
 			PreparedStatement ps = dba.prepareStatement(sql);
-			ps.setInt(1, id);
+			ps.setInt(1, cid);
 			ResultSet rs = ps.executeQuery();
 			rs.beforeFirst();
 			ArrayList<Integer> list = new ArrayList<Integer>();
 			while (rs.next()) {
 				list.add(rs.getInt(1));
 			}
-			int len = list.size();
-			Integer[] ans = new Integer[len];
-			for (int i = 0; i < len; i++) {
-				ans[i] = list.get(i);
-			}
-			return ans;
+			return list;
 		} catch (Exception se) {
-			System.out.println(se.toString());
+			se.printStackTrace();
 			return null;
 		}
 	}
 	
-
-	public boolean saveAllContestCodeToFile(String path, String contestid) {
-		String ret = new String();
-		String sql = "select problem_id, user_name, result, language, in_date, solution_id from solution";
-		String name = null;
+	/**
+	 * 根据竞赛号得到用户名序列(无重复)
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public ArrayList<String> getNameListOfAContest(Integer id) {
+		ArrayList<String> namelist = new ArrayList<String>();
+		String sql = "select user_id from contest_status where contest_id = ? order by user_id";
 		try {
 			PreparedStatement ps = dba.prepareStatement(sql);
+			ps.setString(1, id.toString());
 			ResultSet rs = ps.executeQuery();
 			rs.beforeFirst();
 			while (rs.next()) {
-				String pid = rs.getString(1);
-				String user_name = rs.getString(2);
-				String result = getResultNameById(Integer.parseInt(rs
-						.getString(3)));
-				String ext = FILEEXTS[Integer.parseInt(rs.getString(4))];
-				String date = rs.getString(5).replaceAll("[: .]", "-");
-				name = String.format("%s_%s_%s_%s.%s", user_name, pid, result,
-						date, ext);
-				name = name.replaceAll(" ", "");
-				String code = getCodeBySolutionId(rs.getString(6));
-				ioa.setFileText(path + name, code);
+				String name = rs.getString(1).trim();
+				namelist.add(name);
 			}
 		} catch (SQLException se) {
 			se.printStackTrace();
 			return null;
 		}
-		return ret;
+		return namelist;
 	}
+
 	
+	/**
+	 * 将一次竞赛中所有用户Accepted的代码按用户分文件存放在指定的目录下
+	 * 
+	 * @param id
+	 */
+	public final void getACCodeOfAContestToDir(Integer id, String rootdir) {
+		ArrayList<String> namelist = co.getNameListOfAContest(id);
+		ArrayList<Integer> problemlist = getProblemidsOfAContest(id);
+
+		for (int pid : problemlist) {
+			String dir = rootdir;
+			if (problemlist.size() > 1) {
+				dir += "\\" + pid;
+			}
+			File f = new File(dir);
+			if (!f.exists()) {
+				f.mkdir();
+			}
+			dir += "\\";
+			for (String user : namelist) {
+				ArrayList<String> ids;
+				ids = so.getSolutionIdByDetail(user, pid, 1, id);
+				if (ids == null || ids.size() == 0) {
+					continue;
+				}
+				for (String solution_id : ids) {
+					String code = so.getCodeBySolutionId(solution_id);
+					String date = so.getDateOfASolution(solution_id);
+					String time = getMyTime(date);
+					String res = "Accepted";
+					String path = formatFilePath(dir, time, res, user, pid);
+					ioa.setFileText(path, code);
+				}
+			}
+		}
+	}
+
+	public final void getCodesToFilesFromAContest(Integer cid, String rootdir) {
+		String[] RESULTS = so.getResultNames();
+		ArrayList<String> namelist = co.getNameListOfAContest(cid);
+		ArrayList<Integer> problemlist = getProblemidsOfAContest(cid);
+		for (String user : namelist) {
+			String dir = rootdir + "\\" + user;
+			File f = new File(dir);
+			if (!f.exists()) {
+				f.mkdir();
+			}
+			dir += "\\";
+
+			for (int pid : problemlist) {
+				for (int i = 0; i < RESULTS.length; i++) {
+					ArrayList<String> sids;
+					sids = so.getSolutionIdByDetail(user, pid, i, cid);
+					if (sids == null || sids.size() == 0) {
+						continue;
+					}
+					for (String solution_id : sids) {
+						String code = so.getCodeBySolutionId(solution_id);
+						String date = so.getDateOfASolution(solution_id);
+						String time = getMyTime(date);
+						String res = RESULTS[i];
+						String path = formatFilePath(dir, time, res, user, pid);
+						ioa.setFileText(path, code);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 将从数据库中取出的日期时间文本处理成所需格式的时间文本
+	 * 
+	 * @param date
+	 * @return
+	 */
+	private String getMyTime(String date) {
+		int index = date.indexOf(' ');
+		if (index == -1) {
+			return null;
+		}
+		date = date.substring(index + 1);
+		date = date.replaceAll(":", "-");
+		return date.trim();
+	}
+
+	/**
+	 * 根据给定的信息，得到一个唯一的文件(全)路径
+	 * 
+	 * @param dir
+	 * @param pid
+	 * @param subtime
+	 * @param result
+	 * @param user_name
+	 * @return
+	 */
+	private String formatFilePath(String dir, String subtime, String result,
+			String user_name, int pid) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(dir);
+		sb.append(user_name);
+		sb.append("_");
+		sb.append(pid);
+		sb.append("_");
+		sb.append(subtime);
+		sb.append("_");
+		sb.append(result);
+		sb.append(".cpp");
+		return sb.toString();
+	}
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-
-		so.saveAllContestCodeToFile("X:\\cpp\\", "40");
+		ContestOperator co = ContestOperator.getInstance();
+		// for (int i = 10; i < 19; i++) {
+		// getACCodeOfAContestToDir(i);
+		// System.gc();
+		// }
+		// getCodeToFilesFromAContest(24);
+		co.getCodesToFilesFromAContest(40, "X:\\tt");
+		co.getACCodeOfAContestToDir(40, "X:\\ac");
 	}
 
 }

@@ -135,4 +135,25 @@ public final class UserOperator {
 		return true;
 	}
 	
+	/**
+	 * 利用用户名提取用户登陆IP地址
+	 */
+	public String getUserip(String username) {
+		String userip = null;
+		try {
+			String sql = new String(
+					"select ip from login_log where user_name = ? and time between '2010-11-04 17:00:00.0' and '2010-11-04 22:00:00.0'");
+			PreparedStatement ps = dba.prepareStatement(sql);
+			ps.setString(1, username);
+			ResultSet rs = ps.executeQuery();
+			rs.beforeFirst();
+			if (rs.next()) {
+				return rs.getString(1);
+			}
+		} catch (Exception se) {
+			se.printStackTrace();
+		}
+		return userip;
+	}
+	
 }
