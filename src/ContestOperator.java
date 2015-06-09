@@ -92,17 +92,25 @@ public final class ContestOperator {
 		}
 		return namelist;
 	}
-
 	
 	/**
 	 * 将一次竞赛中所有用户Accepted的代码按用户分文件存放在指定的目录下
 	 * 
-	 * @param id
+	 * @param id 比赛id
 	 */
 	public final void getACCodeOfAContestToDir(Integer id, String rootdir) {
 		ArrayList<String> namelist = co.getNameListOfAContest(id);
+		String[] tmp = new String[namelist.size()];
+		getACCodeOfAContestToDir(id, rootdir, namelist.toArray(tmp));
+	}
+	
+	/**
+	 * 将一次竞赛中<b>指定用户</b>Accepted的代码按用户分文件存放在指定的目录下
+	 * 
+	 * @param id
+	 */
+	public final void getACCodeOfAContestToDir(Integer id, String rootdir, String[] namelist) {
 		ArrayList<Integer> problemlist = getProblemidsOfAContest(id);
-
 		for (int pid : problemlist) {
 			String dir = rootdir;
 			if (problemlist.size() > 1) {
@@ -130,10 +138,26 @@ public final class ContestOperator {
 			}
 		}
 	}
-
+	
+	/**
+	 * 将一场比赛的所有代码按要求导出到指定目录下
+	 * @param cid 比赛(在数据库中)的序号
+	 * @param rootdir 指定根目录
+	 */
 	public final void getCodesToFilesFromAContest(Integer cid, String rootdir) {
-		String[] RESULTS = so.getResultNames();
 		ArrayList<String> namelist = co.getNameListOfAContest(cid);
+		String[] ret = new String[namelist.size()]; 
+		getCodesToFilesFromAContest(cid, rootdir, namelist.toArray(ret));
+	}
+	
+	/**
+	 * 将一场比赛中<b>指定用户</b>的所有代码按要求导出到指定目录下
+	 * @param cid 比赛(在数据库中)的序号
+	 * @param rootdir 指定根目录
+	 * @param namelist 给定的用户名列表
+	 */
+	public final void getCodesToFilesFromAContest(Integer cid, String rootdir, String[] namelist) {
+		String[] RESULTS = so.getResultNames();
 		ArrayList<Integer> problemlist = getProblemidsOfAContest(cid);
 		for (String user : namelist) {
 			String dir = rootdir + "\\" + user;
@@ -210,6 +234,19 @@ public final class ContestOperator {
 			f.mkdir();
 		}
 	}
+	
+	private static String[] treamNameList(ArrayList<String> namelist) {
+		int size = namelist.size();
+		for (int i = size - 1; i >= 0; i--) {
+			String name = namelist.get(i);
+			if (!name.matches("\\d+")) {
+				namelist.remove(i);
+			}
+		}
+		size = namelist.size();
+		String[] ret = new String[size];
+		return namelist.toArray(ret);
+	}
 
 	/**
 	 * @param args
@@ -223,15 +260,18 @@ public final class ContestOperator {
 		String rootdir = "F:\\Experiment";
 		mkdir(rootdir);
 		for (int i = 1; i <= 7; i++) {
-			String cdir = rootdir + "\\" + i;
+			String cdir = rootdir + "\\实验" + i;
 			mkdir(cdir);
 			int cid = contestid[i - 1];
 			String alldir = cdir + "\\all";
 			mkdir(alldir);
-			co.getCodesToFilesFromAContest(cid, alldir);
+			
+			String[] namelist = treamNameList(co.getNameListOfAContest(cid));
+			co.getCodesToFilesFromAContest(cid, alldir, namelist);
+			
 			String acdir = cdir + "\\ac";
 			mkdir(acdir);
-			co.getACCodeOfAContestToDir(cid, acdir);			
+			co.getACCodeOfAContestToDir(cid, acdir, namelist);			
 		}
 	}
 
