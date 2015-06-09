@@ -203,23 +203,36 @@ public final class ContestOperator {
 		sb.append(".cpp");
 		return sb.toString();
 	}
-
+	
+	private static void mkdir(String dir) {
+		File f = new File(dir);
+		if (!f.exists()) {
+			f.mkdir();
+		}
+	}
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
-		String user = "ben";
-		String pass = "110423";
-		ContestOperator co = ContestOperator.getInstance(usr, user, pass);
-		// for (int i = 10; i < 19; i++) {
-		// getACCodeOfAContestToDir(i);
-		// System.gc();
-		// }
-		// getCodeToFilesFromAContest(24);
-		co.getCodesToFilesFromAContest(40, "X:\\tt");
-		co.getACCodeOfAContestToDir(40, "X:\\ac");
+		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
+		String user = "bjfuacm";
+		String pass = "acm320";
+		ContestOperator co = ContestOperator.getInstance(url, user, pass);
+		int[] contestid = {64, 65, 66, 68, 69, 71, 74};
+		String rootdir = "F:\\Experiment";
+		mkdir(rootdir);
+		for (int i = 1; i <= 7; i++) {
+			String cdir = rootdir + "\\" + i;
+			mkdir(cdir);
+			int cid = contestid[i - 1];
+			String alldir = cdir + "\\all";
+			mkdir(alldir);
+			co.getCodesToFilesFromAContest(cid, alldir);
+			String acdir = cdir + "\\ac";
+			mkdir(acdir);
+			co.getACCodeOfAContestToDir(cid, acdir);			
+		}
 	}
 
 }
