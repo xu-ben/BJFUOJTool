@@ -1,6 +1,7 @@
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Scanner;
 
 /**
  * 
@@ -15,7 +16,7 @@ public final class UserOperator {
 	/**
 	 * 数据库操作代理对象
 	 */
-	private DBAgent dba = DBAgent.getInstance();
+	private DBAgent dba = null;
 	
 	/**
 	 * 全局唯一实例
@@ -23,6 +24,11 @@ public final class UserOperator {
 	private static UserOperator uo = null;
 
 	private UserOperator() {
+		dba = DBAgent.getInstance();
+	}
+	
+	private UserOperator(String dburl, String dbuser, String dbpass) {
+		dba = DBAgent.getInstance(dburl, dbuser, dbpass);
 	}
 	
 	public static synchronized UserOperator getInstance() {
@@ -32,24 +38,38 @@ public final class UserOperator {
 		return uo;
 	}
 
+	public static synchronized UserOperator getInstance(String dburl, String dbuser, String dbpass) {
+		if(uo == null) {
+			uo = new UserOperator(dburl, dbuser, dbpass);
+		}
+		return uo;
+	}
+	
+	/**
+	 * 有一次在数据库中将用户的昵称误删，写了这个函数恢复
+	 */
+	@Deprecated
+	private void restoreNickname() {
+		Scanner cin = new Scanner(System.in);
+		String username = null, nickname = null;
+		while (cin.hasNextLine()) {
+			username = cin.nextLine();
+			nickname = cin.nextLine();
+			username = username.trim();
+			nickname = nickname.trim();
+			if (username == null || nickname == null) {
+				break;
+			}
+			if (!nickname.equals("null")) {
+				updateNickname(username, nickname);
+			}
+		}
+	}
+	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		Scanner cin = new Scanner(System.in);
-//		String username = null, nickname = null;
-//		while (cin.hasNextLine()) {
-//			username = cin.nextLine();
-//			nickname = cin.nextLine();
-//			username = username.trim();
-//			nickname = nickname.trim();
-//			if (username == null || nickname == null) {
-//				break;
-//			}
-//			if (!nickname.equals("null")) {
-//				updateNickname(username, nickname);
-//			}
-//		}
 		if(args == null || args.length != 1) {
 			System.out.println("parameter error!");
 			return ;
@@ -62,7 +82,7 @@ public final class UserOperator {
 		if(flag) {
 			System.out.println("Success!");
 		} else {
-			System.out.println("Eorror!");
+			System.out.println("Error!");
 		}
 	}
 

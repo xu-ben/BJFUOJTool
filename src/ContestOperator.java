@@ -15,13 +15,20 @@ public final class ContestOperator {
 	 */
 	private static ContestOperator co = null;
 	
-	private DBAgent dba = DBAgent.getInstance();
+	private DBAgent dba = null;
 	
-	private SolutionOperator so = SolutionOperator.getInstance();
+	private SolutionOperator so = null;
 	
 	private IOAgent ioa = IOAgent.getInstance();
 	
 	private ContestOperator() {
+		dba = DBAgent.getInstance();
+		so = SolutionOperator.getInstance();
+	}
+	
+	private ContestOperator(String dburl, String dbuser, String dbpass) {
+		dba = DBAgent.getInstance(dburl, dbuser, dbpass);
+		so = SolutionOperator.getInstance(dburl, dbuser, dbpass);
 	}
 	
 	public static synchronized ContestOperator getInstance() {
@@ -31,6 +38,13 @@ public final class ContestOperator {
 		return co;
 	}
 
+	public static synchronized ContestOperator getInstance(String dburl, String dbuser, String dbpass) {
+		if(co == null) {
+			co = new ContestOperator(dburl, dbuser, dbpass);
+		}
+		return co;
+	}
+	
 	/**
 	 * 根据比赛号得到题目序号
 	 * @param cid
@@ -190,11 +204,15 @@ public final class ContestOperator {
 		return sb.toString();
 	}
 
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		ContestOperator co = ContestOperator.getInstance();
+		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
+		String user = "ben";
+		String pass = "110423";
+		ContestOperator co = ContestOperator.getInstance(usr, user, pass);
 		// for (int i = 10; i < 19; i++) {
 		// getACCodeOfAContestToDir(i);
 		// System.gc();

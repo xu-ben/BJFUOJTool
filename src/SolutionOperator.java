@@ -19,7 +19,7 @@ public final class SolutionOperator {
 	 */
 	private static SolutionOperator so = null;
 
-	private DBAgent dba = DBAgent.getInstance();
+	private DBAgent dba = null; 
 
 	private IOAgent ioa = IOAgent.getInstance();
 
@@ -35,6 +35,28 @@ public final class SolutionOperator {
 
 	private final String[] FILEEXTS = { "", "c", "", "", "cpp", "pas", "java" };
 
+	private SolutionOperator() {
+		dba = DBAgent.getInstance();
+	}
+
+	private SolutionOperator(String dburl, String dbuser, String dbpass) {
+		dba = DBAgent.getInstance(dburl, dbuser, dbpass);
+	}
+
+	public static synchronized SolutionOperator getInstance() {
+		if (so == null) {
+			so = new SolutionOperator();
+		}
+		return so;
+	}
+
+	public static synchronized SolutionOperator getInstance(String dburl, String dbuser, String dbpass) {
+		if (so == null) {
+			so = new SolutionOperator(dburl, dbuser, dbpass);
+		}
+		return so;
+	}
+	
 	/**
 	 * @param id
 	 *            结果的id
@@ -210,16 +232,6 @@ public final class SolutionOperator {
 		}
 	}
 
-	private SolutionOperator() {
-	}
-
-	public static synchronized SolutionOperator getInstance() {
-		if (so == null) {
-			so = new SolutionOperator();
-		}
-		return so;
-	}
-	
 	public boolean saveAllContestCodeToFile(String path, String contestid) {
 		String sql = "select problem_id, user_name, result, language, in_date, solution_id from solution";
 		String name = null;
