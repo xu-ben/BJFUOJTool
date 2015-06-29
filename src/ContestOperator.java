@@ -2,6 +2,7 @@ import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 /**
@@ -247,11 +248,8 @@ public final class ContestOperator {
 		String[] ret = new String[size];
 		return namelist.toArray(ret);
 	}
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
+	
+	public static void pro_experiment2015() {
 		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
 		String user = "bjfuacm";
 		String pass = "acm320";
@@ -273,6 +271,35 @@ public final class ContestOperator {
 			mkdir(acdir);
 			co.getACCodeOfAContestToDir(cid, acdir, namelist);			
 		}
+		
+	}
+	
+	public static void pro_exam2015() {
+		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
+		String user = "ben";
+		String pass = "110423";
+		ContestOperator co = ContestOperator.getInstance(url, user, pass);
+		UserOperator uo = UserOperator.getInstance(url, user, pass);
+		int cid = 2;
+		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
+		Timestamp start = Timestamp.valueOf("2015-06-08 18:00:00.0");
+		Timestamp end = Timestamp.valueOf("2015-06-08 21:00:00.0");
+		for (String a : namelist) {
+			System.out.println(a);
+			System.out.print("ips:");
+			String[] ips = uo.getLoginIPs(a, start, end);
+			for (String ip : ips) {
+				System.out.print(" " + ip);
+			}
+			System.out.println();
+			
+		}
 	}
 
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		pro_exam2015();
+	}
 }
