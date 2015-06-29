@@ -7,47 +7,49 @@ import java.util.ArrayList;
 
 /**
  * @author ben
- *
+ * 
  */
 public final class ContestOperator {
-	
+
 	/**
 	 * 全局唯一实例
 	 */
 	private static ContestOperator co = null;
-	
+
 	private DBAgent dba = null;
-	
+
 	private SolutionOperator so = null;
-	
+
 	private IOAgent ioa = IOAgent.getInstance();
-	
+
 	private ContestOperator() {
 		dba = DBAgent.getInstance();
 		so = SolutionOperator.getInstance();
 	}
-	
+
 	private ContestOperator(String dburl, String dbuser, String dbpass) {
 		dba = DBAgent.getInstance(dburl, dbuser, dbpass);
 		so = SolutionOperator.getInstance(dburl, dbuser, dbpass);
 	}
-	
+
 	public static synchronized ContestOperator getInstance() {
-		if(co == null) {
+		if (co == null) {
 			co = new ContestOperator();
 		}
 		return co;
 	}
 
-	public static synchronized ContestOperator getInstance(String dburl, String dbuser, String dbpass) {
-		if(co == null) {
+	public static synchronized ContestOperator getInstance(String dburl,
+			String dbuser, String dbpass) {
+		if (co == null) {
 			co = new ContestOperator(dburl, dbuser, dbpass);
 		}
 		return co;
 	}
-	
+
 	/**
 	 * 根据比赛号得到题目序号
+	 * 
 	 * @param cid
 	 * @return
 	 */
@@ -68,7 +70,7 @@ public final class ContestOperator {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * 根据竞赛号得到用户名序列(无重复)
 	 * 
@@ -93,24 +95,26 @@ public final class ContestOperator {
 		}
 		return namelist;
 	}
-	
+
 	/**
 	 * 将一次竞赛中所有用户Accepted的代码按用户分文件存放在指定的目录下
 	 * 
-	 * @param id 比赛id
+	 * @param id
+	 *            比赛id
 	 */
 	public final void getACCodeOfAContestToDir(Integer id, String rootdir) {
 		ArrayList<String> namelist = co.getNameListOfAContest(id);
 		String[] tmp = new String[namelist.size()];
 		getACCodeOfAContestToDir(id, rootdir, namelist.toArray(tmp));
 	}
-	
+
 	/**
 	 * 将一次竞赛中<b>指定用户</b>Accepted的代码按用户分文件存放在指定的目录下
 	 * 
 	 * @param id
 	 */
-	public final void getACCodeOfAContestToDir(Integer id, String rootdir, String[] namelist) {
+	public final void getACCodeOfAContestToDir(Integer id, String rootdir,
+			String[] namelist) {
 		ArrayList<Integer> problemlist = getProblemidsOfAContest(id);
 		for (int pid : problemlist) {
 			String dir = rootdir;
@@ -139,25 +143,33 @@ public final class ContestOperator {
 			}
 		}
 	}
-	
+
 	/**
 	 * 将一场比赛的所有代码按要求导出到指定目录下
-	 * @param cid 比赛(在数据库中)的序号
-	 * @param rootdir 指定根目录
+	 * 
+	 * @param cid
+	 *            比赛(在数据库中)的序号
+	 * @param rootdir
+	 *            指定根目录
 	 */
 	public final void getCodesToFilesFromAContest(Integer cid, String rootdir) {
 		ArrayList<String> namelist = co.getNameListOfAContest(cid);
-		String[] ret = new String[namelist.size()]; 
+		String[] ret = new String[namelist.size()];
 		getCodesToFilesFromAContest(cid, rootdir, namelist.toArray(ret));
 	}
-	
+
 	/**
 	 * 将一场比赛中<b>指定用户</b>的所有代码按要求导出到指定目录下
-	 * @param cid 比赛(在数据库中)的序号
-	 * @param rootdir 指定根目录
-	 * @param namelist 给定的用户名列表
+	 * 
+	 * @param cid
+	 *            比赛(在数据库中)的序号
+	 * @param rootdir
+	 *            指定根目录
+	 * @param namelist
+	 *            给定的用户名列表
 	 */
-	public final void getCodesToFilesFromAContest(Integer cid, String rootdir, String[] namelist) {
+	public final void getCodesToFilesFromAContest(Integer cid, String rootdir,
+			String[] namelist) {
 		String[] RESULTS = so.getResultNames();
 		ArrayList<Integer> problemlist = getProblemidsOfAContest(cid);
 		for (String user : namelist) {
@@ -205,6 +217,28 @@ public final class ContestOperator {
 	}
 
 	/**
+	 * 根据比赛id获取比赛开始及结束时间
+	 * @param id
+	 * @return
+	 */
+	public Timestamp[] getStartAndEndTimeofContest(int id) {
+		Timestamp[] ret = new Timestamp[2];
+		String sql = "select start_time, end_time from contest where contest_id = "
+				+ id;
+		try {
+			ResultSet rs = dba.executeQuery(sql);
+			rs.beforeFirst();
+			if (rs.next()) {
+				ret[0] = rs.getTimestamp(1);
+				ret[1] = rs.getTimestamp(2);
+			}
+		} catch (SQLException se) {
+			se.printStackTrace();
+		}
+		return ret;
+	}
+
+	/**
 	 * 根据给定的信息，得到一个唯一的文件(全)路径
 	 * 
 	 * @param dir
@@ -228,14 +262,14 @@ public final class ContestOperator {
 		sb.append(".cpp");
 		return sb.toString();
 	}
-	
+
 	private static void mkdir(String dir) {
 		File f = new File(dir);
 		if (!f.exists()) {
 			f.mkdir();
 		}
 	}
-	
+
 	private static String[] treamNameList(ArrayList<String> namelist) {
 		int size = namelist.size();
 		for (int i = size - 1; i >= 0; i--) {
@@ -248,13 +282,13 @@ public final class ContestOperator {
 		String[] ret = new String[size];
 		return namelist.toArray(ret);
 	}
-	
+
 	public static void pro_experiment2015() {
 		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
 		String user = "bjfuacm";
 		String pass = "acm320";
 		ContestOperator co = ContestOperator.getInstance(url, user, pass);
-		int[] contestid = {64, 65, 66, 68, 69, 71, 74};
+		int[] contestid = { 64, 65, 66, 68, 69, 71, 74 };
 		String rootdir = "F:\\Experiment";
 		mkdir(rootdir);
 		for (int i = 1; i <= 7; i++) {
@@ -263,17 +297,17 @@ public final class ContestOperator {
 			int cid = contestid[i - 1];
 			String alldir = cdir + "\\all";
 			mkdir(alldir);
-			
+
 			String[] namelist = treamNameList(co.getNameListOfAContest(cid));
 			co.getCodesToFilesFromAContest(cid, alldir, namelist);
-			
+
 			String acdir = cdir + "\\ac";
 			mkdir(acdir);
-			co.getACCodeOfAContestToDir(cid, acdir, namelist);			
+			co.getACCodeOfAContestToDir(cid, acdir, namelist);
 		}
-		
+
 	}
-	
+
 	public static void pro_exam2015() {
 		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
 		String user = "ben";
@@ -282,17 +316,16 @@ public final class ContestOperator {
 		UserOperator uo = UserOperator.getInstance(url, user, pass);
 		int cid = 2;
 		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
-		Timestamp start = Timestamp.valueOf("2015-06-08 18:00:00.0");
-		Timestamp end = Timestamp.valueOf("2015-06-08 21:00:00.0");
-		for (String a : namelist) {
-			System.out.println(a);
-			System.out.print("ips:");
-			String[] ips = uo.getLoginIPs(a, start, end);
+		Timestamp[] contestTime = co.getStartAndEndTimeofContest(2);
+		for (String name : namelist) {
+			System.out.print("学号：" + name);
+			System.out.print("\t登录过的ip：");
+			String[] ips = uo.getLoginIPs(name, contestTime[0], contestTime[1]);
 			for (String ip : ips) {
 				System.out.print(" " + ip);
 			}
 			System.out.println();
-			
+
 		}
 	}
 
