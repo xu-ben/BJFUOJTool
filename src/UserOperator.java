@@ -161,7 +161,7 @@ public final class UserOperator {
 	}
 
 	/**
-	 * 获取指定用户在指定时间段登录本系统的ip地址
+	 * 获取指定用户在指定时间段登录本系统的ip地址列表
 	 * @param username 用户名
 	 * @param start 开始时间
 	 * @param end 结束时间

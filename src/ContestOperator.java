@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * @author ben
@@ -218,6 +219,7 @@ public final class ContestOperator {
 
 	/**
 	 * 根据比赛id获取比赛开始及结束时间
+	 * 
 	 * @param id
 	 * @return
 	 */
@@ -283,7 +285,7 @@ public final class ContestOperator {
 		return namelist.toArray(ret);
 	}
 
-	public static void pro_experiment2015() {
+	private static void pro_experiment2015() {
 		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
 		String user = "bjfuacm";
 		String pass = "acm320";
@@ -308,6 +310,25 @@ public final class ContestOperator {
 
 	}
 
+	private static void cpp_exam_2015() {
+		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
+		String user = "ben";
+		String pass = "110423";
+		ContestOperator co = ContestOperator.getInstance(url, user, pass);
+		String cdir = "F:\\Exam";
+		mkdir(cdir);
+		int cid = 3;
+		String alldir = cdir + "\\all";
+		mkdir(alldir);
+
+		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
+		co.getCodesToFilesFromAContest(cid, alldir, namelist);
+
+		String acdir = cdir + "\\ac";
+		mkdir(acdir);
+		co.getACCodeOfAContestToDir(cid, acdir, namelist);
+	}
+
 	public static void pro_exam2015() {
 		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
 		String user = "ben";
@@ -316,7 +337,7 @@ public final class ContestOperator {
 		UserOperator uo = UserOperator.getInstance(url, user, pass);
 		int cid = 2;
 		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
-		Timestamp[] contestTime = co.getStartAndEndTimeofContest(2);
+		Timestamp[] contestTime = co.getStartAndEndTimeofContest(cid);
 		for (String name : namelist) {
 			System.out.print("学号：" + name);
 			System.out.print("\t登录过的ip：");
@@ -329,10 +350,64 @@ public final class ContestOperator {
 		}
 	}
 
+	public void getLoginDetail(String username, Timestamp start, Timestamp end) {
+		String sql = "select ip, time from login_log where user_name = ? and time between ? and ?";
+		System.out.print(username);
+		try {
+			PreparedStatement ps = dba.prepareStatement(sql);
+			ps.setString(1, username);
+			ps.setTimestamp(2, start);
+			ps.setTimestamp(3, end);
+			ResultSet rs = ps.executeQuery();
+			rs.beforeFirst();
+			while (rs.next()) {
+				System.out.print(", " + rs.getTime(2));
+				System.out.print(", " + rs.getString(1));
+			}
+		} catch (Exception se) {
+			se.printStackTrace();
+		}
+		System.out.println();
+	}
+
+	public static void cpp_exam2015() {
+		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
+		String user = "ben";
+		String pass = "110423";
+		ContestOperator co = ContestOperator.getInstance(url, user, pass);
+		UserOperator uo = UserOperator.getInstance(url, user, pass);
+		int cid = 3;
+		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
+		Timestamp[] contestTime = co.getStartAndEndTimeofContest(cid);
+		for (String name : namelist) {
+			System.out.print(name);
+			String[] ips = uo.getLoginIPs(name, contestTime[0], contestTime[1]);
+			for (String ip : ips) {
+				System.out.print(" " + ip);
+			}
+			System.out.println();
+
+		}
+	}
+
+	public static void cpp_exam2015_detail() {
+		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
+		String user = "ben";
+		String pass = "110423";
+		ContestOperator co = ContestOperator.getInstance(url, user, pass);
+		int cid = 3;
+		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
+		Timestamp[] contestTime = co.getStartAndEndTimeofContest(cid);
+		for (String name : namelist) {
+			co.getLoginDetail(name, contestTime[0], contestTime[1]);
+		}
+	}
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		pro_exam2015();
+//		cpp_exam2015_detail();
+		cpp_exam_2015();
 	}
 }
