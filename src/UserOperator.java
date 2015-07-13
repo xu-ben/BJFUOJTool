@@ -1,3 +1,5 @@
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -71,9 +73,72 @@ public final class UserOperator {
 	}
 
 	/**
+	 * @param str
+	 * @return
+	 * @Date: 2013-9-6
+	 * @Author: lulei
+	 * @Description: 32位小写MD5
+	 */
+	public static String parseStrToMd5L32(String str) {
+		String reStr = null;
+		try {
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+			byte[] bytes = md5.digest(str.getBytes());
+			StringBuffer stringBuffer = new StringBuffer();
+			for (byte b : bytes) {
+				int bt = b & 0xff;
+				if (bt < 16) {
+					stringBuffer.append(0);
+				}
+				stringBuffer.append(Integer.toHexString(bt));
+			}
+			reStr = stringBuffer.toString();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return reStr;
+	}
+
+	/**
+	 * @param str
+	 * @return
+	 * @Date: 2013-9-6
+	 * @Author: lulei
+	 * @Description: 32位大写MD5
+	 */
+	public static String parseStrToMd5U32(String str) {
+		String reStr = parseStrToMd5L32(str);
+		if (reStr != null) {
+			reStr = reStr.toUpperCase();
+		}
+		return reStr;
+	}
+
+	private static void setPasswordforCppExam2015() {
+		String str = "ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789";// 字符集
+		final int bitnum = 8;
+		char[] arr = new char[bitnum];
+		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
+		String user = "ben";
+		String pass = "110423";
+		UserOperator uo = UserOperator.getInstance(url, user, pass);
+		for (int i = 0; i < 32; i++) {
+			for (int j = 0; j < bitnum; j++) {
+				int t = (int) (Math.random() * str.length());
+				arr[j] = str.charAt(t);
+			}
+			String p = new String(arr);
+			String u = String.format("exam%04d", i);
+			uo.setPassword(u, p);
+			System.out.printf("%s, %s\n", u, p);
+		}
+	}
+
+	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		setPasswordforCppExam2015();
 		if (args == null || args.length != 1) {
 			System.out.println("parameter error!");
 			return;
@@ -109,12 +174,31 @@ public final class UserOperator {
 		}
 		return s;
 	}
+	
 
+	/**
+	 * 将用户username的密码设成'111111'
+	 * 
+	 * @param username
+	 * @return
+	 */
 	public boolean setPasswordToOne(String username) {
-		String sql = "update users set password=\'96E79218965EB72C92A549DD5A330112\' where user_name = ?";
+		return setPassword(username, "111111");
+	}
+
+	/**
+	 * 将用户username的密码设成password
+	 * @param username
+	 * @param password
+	 * @return
+	 */
+	public boolean setPassword(String username, String password) {
+		password = parseStrToMd5U32(password);
+		String sql = "update users set password = ? where user_name = ?";
 		try {
 			PreparedStatement ps = dba.prepareStatement(sql);
-			ps.setString(1, username);
+			ps.setString(1, password);
+			ps.setString(2, username);
 			ps.execute();
 		} catch (SQLException se) {
 			se.printStackTrace();
@@ -162,9 +246,13 @@ public final class UserOperator {
 
 	/**
 	 * 获取指定用户在指定时间段登录本系统的ip地址列表
-	 * @param username 用户名
-	 * @param start 开始时间
-	 * @param end 结束时间
+	 * 
+	 * @param username
+	 *            用户名
+	 * @param start
+	 *            开始时间
+	 * @param end
+	 *            结束时间
 	 * @return ip地址数组
 	 */
 	public String[] getLoginIPs(String username, Timestamp start, Timestamp end) {
@@ -185,7 +273,7 @@ public final class UserOperator {
 			}
 			String[] userip = new String[ans.size()];
 			return ans.toArray(userip);
-			
+
 		} catch (Exception se) {
 			se.printStackTrace();
 			return null;
