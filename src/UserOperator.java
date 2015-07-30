@@ -115,14 +115,14 @@ public final class UserOperator {
 	}
 
 	private static void setPasswordforCppExam2015() {
-		String str = "ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789";// 字符集
+		String str = "ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";// 字符集
 		final int bitnum = 8;
 		char[] arr = new char[bitnum];
 		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
 		String user = "ben";
 		String pass = "110423";
 		UserOperator uo = UserOperator.getInstance(url, user, pass);
-		for (int i = 0; i < 32; i++) {
+		for (int i = 0; i < 64; i++) {
 			for (int j = 0; j < bitnum; j++) {
 				int t = (int) (Math.random() * str.length());
 				arr[j] = str.charAt(t);
