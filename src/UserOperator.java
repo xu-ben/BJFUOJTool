@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -134,27 +135,6 @@ public final class UserOperator {
 		}
 	}
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		setPasswordforCppExam2015();
-		if (args == null || args.length != 1) {
-			System.out.println("parameter error!");
-			return;
-		}
-		String username = args[0];
-		UserOperator uo = UserOperator.getInstance();
-		// uo.getNicknameOfUser();
-		// uo.getPassword("root");
-		boolean flag = uo.setPasswordToOne(username);
-		if (flag) {
-			System.out.println("Success!");
-		} else {
-			System.out.println("Error!");
-		}
-	}
-
 	public String getNicknameOfUser() {
 		String s = null;
 		try {
@@ -174,7 +154,6 @@ public final class UserOperator {
 		}
 		return s;
 	}
-	
 
 	/**
 	 * 将用户username的密码设成'111111'
@@ -188,6 +167,7 @@ public final class UserOperator {
 
 	/**
 	 * 将用户username的密码设成password
+	 * 
 	 * @param username
 	 * @param password
 	 * @return
@@ -198,6 +178,26 @@ public final class UserOperator {
 		try {
 			PreparedStatement ps = dba.prepareStatement(sql);
 			ps.setString(1, password);
+			ps.setString(2, username);
+			ps.execute();
+		} catch (SQLException se) {
+			se.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * u
+	 * @param username
+	 * @param solved
+	 * @return
+	 */
+	public boolean setSolved(String username, int solved) {
+		String sql = "update users set solved = ? where user_name = ?";
+		try {
+			PreparedStatement ps = dba.prepareStatement(sql);
+			ps.setInt(1, solved);
 			ps.setString(2, username);
 			ps.execute();
 		} catch (SQLException se) {
@@ -243,6 +243,69 @@ public final class UserOperator {
 		}
 		return true;
 	}
+	
+	/** 
+	 * 取到当前系统中所有的用户名
+	 * @return
+	 */
+	public String[] getAllUsers() {
+		String sql = "select user_name from users";
+		ArrayList<String> ans = new ArrayList<String>();
+		PreparedStatement ps = dba.prepareStatement(sql);
+		try {
+			ResultSet rs = ps.executeQuery();
+			rs.beforeFirst();
+			while (rs.next()) {
+				ans.add(rs.getString(1));
+			}
+			if (ans.size() <= 0) {
+				return null;
+			}
+			String[] users = new String[ans.size()];
+			return ans.toArray(users);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * 计算某用户在oj上的过题数。这个计算方法较准确
+	 * @param username
+	 * @return
+	 */
+	public int countSolvedProblemsOfUser(String username) {
+		//select distinct problem_id from solution where user_name='bingfeng' and result=1 and problem_id < 10000 order by problem_id;		
+		String sql = "select count(distinct problem_id) from solution where user_name=? and result=1 and problem_id < 10000";
+		try {
+			PreparedStatement ps = dba.prepareStatement(sql);
+			ps.setString(1, username);
+			ResultSet rs = ps.executeQuery();
+			rs.beforeFirst();
+			if (rs.next()) {
+				return rs.getInt(1);
+			}
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		return -1;
+	}
+	
+	public int getSolvedProblemsOfUser(String username) {
+		String sql = "select solved from users where user_name=?";
+		try {
+			PreparedStatement ps = dba.prepareStatement(sql);
+			ps.setString(1, username);
+			ResultSet rs = ps.executeQuery();
+			rs.beforeFirst();
+			if (rs.next()) {
+				return rs.getInt(1);
+			}
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		return -1;		
+	}
 
 	/**
 	 * 获取指定用户在指定时间段登录本系统的ip地址列表
@@ -279,5 +342,38 @@ public final class UserOperator {
 			return null;
 		}
 	}
+	
+	public static void recoverySolvedNum() {
+		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
+		String user = "bjfuacm";
+		String pass = "acm320";
+		UserOperator uo = UserOperator.getInstance(url, user, pass);
+//		String[] ret = uo.getAllUsers();
+//		for (String u : ret) {
+//			int cs = uo.countSolvedProblemsOfUser(u);
+//			int gs = uo.getSolvedProblemsOfUser(u);
+//			if (cs != gs) {
+//				System.out.printf("%s, %d, %d\n", u, cs, gs);
+//				System.out.println(u);
+//			}
+//		}
+		String[] usernames = {"140824209","bingfeng","songjs","test","xiaomaigua"};
+		for (String u: usernames) {
+			int cs = uo.countSolvedProblemsOfUser(u);
+			int gs = uo.getSolvedProblemsOfUser(u);
+			System.out.printf("%s, %d, %d\n", u, cs, gs);
+//			uo.setSolved(u, cs);
+			
+		}
+		
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		recoverySolvedNum();
+	}
+
 
 }
