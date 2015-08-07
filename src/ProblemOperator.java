@@ -1,9 +1,14 @@
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 /**
  * 
@@ -22,12 +27,8 @@ public final class ProblemOperator {
 
 	private DBAgent dba = null;
 
-	private ProblemOperator() {
-		dba = DBAgent.getInstance();
-	}
-
-	private ProblemOperator(String dburl, String dbuser, String dbpass) {
-		dba = DBAgent.getInstance(dburl, dbuser, dbpass);
+	private ProblemOperator(String xmlfilename) throws ParserConfigurationException, SAXException, IOException {
+		dba = DBAgent.getInstance(xmlfilename);
 	}
 
 	/**
@@ -147,17 +148,17 @@ public final class ProblemOperator {
 		return getContentOfProblem("hint", pid);
 	}
 
-	public synchronized static ProblemOperator getInstance() {
+	public synchronized static ProblemOperator getInstance(String xmlfilename) {
 		if (po == null) {
-			po = new ProblemOperator();
-		}
-		return po;
-	}
-
-	public synchronized static ProblemOperator getInstance(String dburl,
-			String dbuser, String dbpass) {
-		if (po == null) {
-			po = new ProblemOperator(dburl, dbuser, dbpass);
+			try {
+				po = new ProblemOperator(xmlfilename);
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			} catch (SAXException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return po;
 	}
@@ -166,11 +167,7 @@ public final class ProblemOperator {
 	 * 批量处理oj题目中的图片路径，将绝对路径的图片改成相对路径
 	 */
 	private static void imageTreat1() {
-		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
-		String user = "bjfuacm";
-		String pass = "acm320";
-
-		ProblemOperator po = ProblemOperator.getInstance(url, user, pass);
+		ProblemOperator po = ProblemOperator.getInstance("acm.db.xml");
 
 		int[] pids = po.getAllProblemId();
 		int changecnt = 0;
@@ -201,11 +198,7 @@ public final class ProblemOperator {
 	 * 批量处理oj题目中的图片路径，将系统中/acmhome/judge/images改成了/acmhome/upload/image
 	 */
 	private static void imageTreat2() {
-		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
-		String user = "bjfuacm";
-		String pass = "acm320";
-
-		ProblemOperator po = ProblemOperator.getInstance(url, user, pass);
+		ProblemOperator po = ProblemOperator.getInstance("acm.db.xml");
 
 		int[] pids = po.getAllProblemId();
 		int changecnt = 0;

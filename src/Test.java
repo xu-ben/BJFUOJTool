@@ -2,6 +2,10 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
+
 public class Test {
 	/**
 	 * 文件读写代理对象
@@ -11,14 +15,29 @@ public class Test {
 	/**
 	 * 数据库操作代理对象
 	 */
-	private DBAgent dba = DBAgent.getInstance();
+	private DBAgent dba = null;
 
-	private SolutionOperator so = SolutionOperator.getInstance();
+	private SolutionOperator so = null;
 
-	private ContestOperator co = ContestOperator.getInstance();
+	private ContestOperator co = null; 
+	
+	private Test(String xmlfilename) {
+		try {
+			dba = DBAgent.getInstance(xmlfilename);
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		so = SolutionOperator.getInstance(xmlfilename);
+		co = ContestOperator.getInstance(xmlfilename);
+		
+	}
 
 	public static void main(String[] args) {
-		Test test = new Test();
+		Test test = new Test("acm.db.xml");
 		Integer id = 14;
 		/*
 		 * String strusername = ""; String str = new String(""); str +=

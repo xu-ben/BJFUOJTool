@@ -11,7 +11,7 @@ import java.io.File;
 public final class ACMCodeAnalyse {
 	
 	public static void work(File dir) {
-		SolutionOperator so = SolutionOperator.getInstance();		
+		SolutionOperator so = SolutionOperator.getInstance("acm.db.xml");		
 	}
 
 	/**

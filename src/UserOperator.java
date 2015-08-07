@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
@@ -7,6 +8,10 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 /**
  * 
@@ -28,25 +33,21 @@ public final class UserOperator {
 	 */
 	private static UserOperator uo = null;
 
-	private UserOperator() {
-		dba = DBAgent.getInstance();
+	private UserOperator(String xmlfilename) throws ParserConfigurationException, SAXException, IOException {
+		dba = DBAgent.getInstance(xmlfilename);
 	}
 
-	private UserOperator(String dburl, String dbuser, String dbpass) {
-		dba = DBAgent.getInstance(dburl, dbuser, dbpass);
-	}
-
-	public static synchronized UserOperator getInstance() {
+	public static synchronized UserOperator getInstance(String xmlfilename) {
 		if (uo == null) {
-			uo = new UserOperator();
-		}
-		return uo;
-	}
-
-	public static synchronized UserOperator getInstance(String dburl,
-			String dbuser, String dbpass) {
-		if (uo == null) {
-			uo = new UserOperator(dburl, dbuser, dbpass);
+			try {
+				uo = new UserOperator(xmlfilename);
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			} catch (SAXException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return uo;
 	}
@@ -119,10 +120,7 @@ public final class UserOperator {
 		String str = "ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";// 字符集
 		final int bitnum = 8;
 		char[] arr = new char[bitnum];
-		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
-		String user = "ben";
-		String pass = "110423";
-		UserOperator uo = UserOperator.getInstance(url, user, pass);
+		UserOperator uo = UserOperator.getInstance("166.db.xml");
 		for (int i = 0; i < 64; i++) {
 			for (int j = 0; j < bitnum; j++) {
 				int t = (int) (Math.random() * str.length());
@@ -344,10 +342,7 @@ public final class UserOperator {
 	}
 	
 	public static void recoverySolvedNum() {
-		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
-		String user = "bjfuacm";
-		String pass = "acm320";
-		UserOperator uo = UserOperator.getInstance(url, user, pass);
+		ContestOperator co = ContestOperator.getInstance("acm.db.xml");
 //		String[] ret = uo.getAllUsers();
 //		for (String u : ret) {
 //			int cs = uo.countSolvedProblemsOfUser(u);
@@ -372,7 +367,13 @@ public final class UserOperator {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		recoverySolvedNum();
+//		recoverySolvedNum();
+		UserOperator uo = UserOperator.getInstance("localhost.db.xml");
+		String[] ret = uo.getAllUsers();
+		for (String u : ret) {
+			int cs = uo.countSolvedProblemsOfUser(u);
+			System.out.printf("%s, %d\n", u, cs);
+		}
 	}
 
 

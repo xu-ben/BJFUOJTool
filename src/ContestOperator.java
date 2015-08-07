@@ -32,8 +32,8 @@ public final class ContestOperator {
 	private ContestOperator(String xmlfilename)
 			throws ParserConfigurationException, SAXException, IOException {
 		dba = DBAgent.getInstance(xmlfilename);
-		so = SolutionOperator.getInstance();
-		uo = UserOperator.getInstance();
+		so = SolutionOperator.getInstance(xmlfilename);
+		uo = UserOperator.getInstance(xmlfilename);
 	}
 
 	public static synchronized ContestOperator getInstance(String xmlfilename) {
@@ -398,10 +398,7 @@ public final class ContestOperator {
 	}
 
 	private static void pro_experiment2015() {
-		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
-		String user = "bjfuacm";
-		String pass = "acm320";
-		ContestOperator co = ContestOperator.getInstance(url, user, pass);
+		ContestOperator co = ContestOperator.getInstance("acm.db.xml");
 		int[] contestid = { 64, 65, 66, 68, 69, 71, 74 };
 		String rootdir = "F:\\Experiment";
 		mkdir(rootdir);
@@ -438,11 +435,7 @@ public final class ContestOperator {
 	}
 
 	private static void cpp_exam_wsr_2015() {
-		ContestOperator co = ContestOperator.getInstance("acm.db.xml");
-
-		// String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
-		// String user = "ben";
-		// String pass = "110423";
+		// ContestOperator co = ContestOperator.getInstance("166.db.xml");
 		// String cdir = "F:\\Exam";
 		// ContestOperator co = ContestOperator.getInstance(url, user, pass);
 		// try {
@@ -450,21 +443,16 @@ public final class ContestOperator {
 		// } catch (FileNotFoundException e) {
 		// e.printStackTrace();
 		// }
-		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
-		String user = "bjfuacm";
-		String pass = "acm320";
+
+		ContestOperator co = ContestOperator.getInstance("acm.db.xml");
 		String cdir = "F:\\C++上机实验";
-		ContestOperator co = ContestOperator.getInstance(url, user, pass);
 		int[] cids = { 75, 77, 78 };
 		co.exportExperimentData(cdir, cids);
 	}
 
 	private static void pro_exam2015() {
-		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
-		String user = "ben";
-		String pass = "110423";
-		ContestOperator co = ContestOperator.getInstance(url, user, pass);
-		UserOperator uo = UserOperator.getInstance(url, user, pass);
+		ContestOperator co = ContestOperator.getInstance("166.db.xml");
+		UserOperator uo = UserOperator.getInstance("166.db.xml");
 		int cid = 2;
 		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
 		Timestamp[] contestTime = co.getStartAndEndTimeofContest(cid);

@@ -1,8 +1,13 @@
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 /**
  * 
@@ -35,28 +40,29 @@ public final class SolutionOperator {
 
 	private final String[] FILEEXTS = { "", "c", "", "", "cpp", "pas", "java" };
 
-	private SolutionOperator() {
-		dba = DBAgent.getInstance();
+	private SolutionOperator(String xmlfilename) throws ParserConfigurationException, SAXException, IOException {
+		dba = DBAgent.getInstance(xmlfilename);
 	}
 
 	private SolutionOperator(String dburl, String dbuser, String dbpass) {
 		dba = DBAgent.getInstance(dburl, dbuser, dbpass);
 	}
 
-	public static synchronized SolutionOperator getInstance() {
+	public static synchronized SolutionOperator getInstance(String xmlfilename) {
 		if (so == null) {
-			so = new SolutionOperator();
+			try {
+				so = new SolutionOperator(xmlfilename);
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			} catch (SAXException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return so;
 	}
 
-	public static synchronized SolutionOperator getInstance(String dburl, String dbuser, String dbpass) {
-		if (so == null) {
-			so = new SolutionOperator(dburl, dbuser, dbpass);
-		}
-		return so;
-	}
-	
 	/**
 	 * @param id
 	 *            结果的id
@@ -263,7 +269,7 @@ public final class SolutionOperator {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		SolutionOperator so = SolutionOperator.getInstance();
+		SolutionOperator so = SolutionOperator.getInstance("acm.db.xml");
 		// so.getSolutionDetailById("4a4cfd8e3ff8d89301400096481a0007");
 		// so.genFileNameById("4a4cfd8e3ff8d89301400096481a0007");
 		so.saveAllCodeToFile("X:\\bjfuacmcode\\");
