@@ -1,12 +1,14 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashSet;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
 /**
  * @author ben
@@ -22,34 +24,29 @@ public final class ContestOperator {
 	private DBAgent dba = null;
 
 	private SolutionOperator so = null;
-	
+
 	private UserOperator uo = null;
 
 	private IOAgent ioa = IOAgent.getInstance();
 
-	private ContestOperator() {
-		dba = DBAgent.getInstance();
+	private ContestOperator(String xmlfilename)
+			throws ParserConfigurationException, SAXException, IOException {
+		dba = DBAgent.getInstance(xmlfilename);
 		so = SolutionOperator.getInstance();
 		uo = UserOperator.getInstance();
 	}
 
-	private ContestOperator(String dburl, String dbuser, String dbpass) {
-		dba = DBAgent.getInstance(dburl, dbuser, dbpass);
-		so = SolutionOperator.getInstance(dburl, dbuser, dbpass);
-		uo = UserOperator.getInstance(dburl, dbuser, dbpass);
-	}
-
-	public static synchronized ContestOperator getInstance() {
+	public static synchronized ContestOperator getInstance(String xmlfilename) {
 		if (co == null) {
-			co = new ContestOperator();
-		}
-		return co;
-	}
-
-	public static synchronized ContestOperator getInstance(String dburl,
-			String dbuser, String dbpass) {
-		if (co == null) {
-			co = new ContestOperator(dburl, dbuser, dbpass);
+			try {
+				co = new ContestOperator(xmlfilename);
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			} catch (SAXException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return co;
 	}
@@ -127,7 +124,7 @@ public final class ContestOperator {
 		for (int pid : problemlist) {
 			String dir = rootdir;
 			if (problemlist.size() > 1) {
-				dir += "\\" + (char)('A' + I);
+				dir += "\\" + (char) ('A' + I);
 			}
 			File f = new File(dir);
 			if (!f.exists()) {
@@ -249,15 +246,21 @@ public final class ContestOperator {
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * 获取指定时间区间的所有登录情况，输出到指定输出流(如System.out标准输出)中
-	 * @param username 用户名
-	 * @param start 开始时间
-	 * @param end 结束时间
-	 * @param out 输出流
+	 * 
+	 * @param username
+	 *            用户名
+	 * @param start
+	 *            开始时间
+	 * @param end
+	 *            结束时间
+	 * @param out
+	 *            输出流
 	 */
-	public void getLoginDetail(String username, Timestamp start, Timestamp end, PrintStream out) {
+	public void getLoginDetail(String username, Timestamp start, Timestamp end,
+			PrintStream out) {
 		String sql = "select ip, time from login_log where user_name = ? and time between ? and ?";
 		out.print(username);
 		try {
@@ -281,7 +284,8 @@ public final class ContestOperator {
 	 * 根据给定的信息，得到一个唯一的文件(全)路径
 	 * 
 	 * @param dir
-	 * @param pid 从0开始编号的题目序号
+	 * @param pid
+	 *            从0开始编号的题目序号
 	 * @param subtime
 	 * @param result
 	 * @param user_name
@@ -293,7 +297,7 @@ public final class ContestOperator {
 		sb.append(dir);
 		sb.append(user_name);
 		sb.append("_");
-		sb.append((char)(pid + 'A'));
+		sb.append((char) (pid + 'A'));
 		sb.append("_");
 		sb.append(subtime);
 		sb.append("_");
@@ -311,6 +315,7 @@ public final class ContestOperator {
 
 	/**
 	 * 筛掉不符合要求的但参加了比赛的用户名
+	 * 
 	 * @param namelist
 	 * @return
 	 */
@@ -329,11 +334,15 @@ public final class ContestOperator {
 
 	/**
 	 * 导出考试数据,包括学生提交的所有代码，ac代码以及考试期间用户登录情况
-	 * @param rootdir 存储数据文件的根目录
-	 * @param cid 比赛的数据库id
-	 * @throws FileNotFoundException 
+	 * 
+	 * @param rootdir
+	 *            存储数据文件的根目录
+	 * @param cid
+	 *            比赛的数据库id
+	 * @throws FileNotFoundException
 	 */
-	public void exportExamData(String rootdir, Integer cid) throws FileNotFoundException {
+	public void exportExamData(String rootdir, Integer cid)
+			throws FileNotFoundException {
 		mkdir(rootdir);
 		String alldir = rootdir + "\\all";
 		mkdir(alldir);
@@ -342,13 +351,14 @@ public final class ContestOperator {
 		String acdir = rootdir + "\\ac";
 		mkdir(acdir);
 		getACCodeOfAContestToDir(cid, acdir, namelist);
-		
+
 		Timestamp[] contestTime = getStartAndEndTimeofContest(cid);
 		PrintStream login_ip = new PrintStream(rootdir + "\\login_ip.csv");
-		PrintStream login_detail = new PrintStream(rootdir + "\\login_detail.csv");
+		PrintStream login_detail = new PrintStream(rootdir
+				+ "\\login_detail.csv");
 		for (String name : namelist) {
 			getLoginDetail(name, contestTime[0], contestTime[1], login_detail);
-			
+
 			login_ip.print(name);
 			String[] ips = uo.getLoginIPs(name, contestTime[0], contestTime[1]);
 			for (String ip : ips) {
@@ -359,11 +369,14 @@ public final class ContestOperator {
 		login_ip.close();
 		login_detail.close();
 	}
-	
+
 	/**
 	 * 导出实验数据,包括学生提交的所有代码，ac代码等
-	 * @param rootdir 存储数据文件的根目录
-	 * @param cids 比赛的数据库id
+	 * 
+	 * @param rootdir
+	 *            存储数据文件的根目录
+	 * @param cids
+	 *            比赛的数据库id
 	 */
 	public void exportExperimentData(String rootdir, int[] cids) {
 		mkdir(rootdir);
@@ -381,7 +394,7 @@ public final class ContestOperator {
 			mkdir(acdir);
 			co.getACCodeOfAContestToDir(cid, acdir, namelist);
 		}
-		
+
 	}
 
 	private static void pro_experiment2015() {
@@ -408,44 +421,41 @@ public final class ContestOperator {
 		}
 
 	}
-	
+
 	private static void cpp_xyy_2015() {
-//		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
-//		String user = "ben";
-//		String pass = "110423";
-//		String cdir = "F:\\Cpp_XYY";
-//		ContestOperator co = ContestOperator.getInstance(url, user, pass);
-//		try {
-//			co.exportExamData(cdir + "\\exam", 3);
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
-		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
-		String user = "bjfuacm";
-		String pass = "acm320";
+		// ContestOperator co = ContestOperator.getInstance("166.db.xml");
+		// String cdir = "F:\\Cpp_XYY";
+		// try {
+		// co.exportExamData(cdir + "\\exam", 3);
+		// } catch (FileNotFoundException e) {
+		// e.printStackTrace();
+		// }
+		ContestOperator co = ContestOperator
+				.getInstance("acm.bjfu.edu.cn.db.xml");
 		String cdir = "F:\\C语言复习";
-		ContestOperator co = ContestOperator.getInstance(url, user, pass);
-		int[] cids = {63, 67, 34, 70, 73, 76};
+		int[] cids = { 63, 67, 34, 70, 73, 76 };
 		co.exportExperimentData(cdir, cids);
 	}
 
 	private static void cpp_exam_wsr_2015() {
-//		String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
-//		String user = "ben";
-//		String pass = "110423";
-//		String cdir = "F:\\Exam";
-//		ContestOperator co = ContestOperator.getInstance(url, user, pass);
-//		try {
-//			co.exportExamData(cdir, 2);
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
+		ContestOperator co = ContestOperator.getInstance("acm.db.xml");
+
+		// String url = "jdbc:mysql://211.71.149.166:3306/acmhome";
+		// String user = "ben";
+		// String pass = "110423";
+		// String cdir = "F:\\Exam";
+		// ContestOperator co = ContestOperator.getInstance(url, user, pass);
+		// try {
+		// co.exportExamData(cdir, 2);
+		// } catch (FileNotFoundException e) {
+		// e.printStackTrace();
+		// }
 		String url = "jdbc:mysql://211.71.149.133:3306/acmhome";
 		String user = "bjfuacm";
 		String pass = "acm320";
 		String cdir = "F:\\C++上机实验";
 		ContestOperator co = ContestOperator.getInstance(url, user, pass);
-		int[] cids = {75, 77, 78};
+		int[] cids = { 75, 77, 78 };
 		co.exportExperimentData(cdir, cids);
 	}
 
@@ -474,8 +484,8 @@ public final class ContestOperator {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		cpp_exam2015_detail();
-//		cpp_xyy_2015();
+		// cpp_exam2015_detail();
+		// cpp_xyy_2015();
 		cpp_exam_wsr_2015();
 	}
 }
