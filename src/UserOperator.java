@@ -368,7 +368,7 @@ public final class UserOperator {
 	 */
 	public static void main(String[] args) {
 //		recoverySolvedNum();
-		UserOperator uo = UserOperator.getInstance("localhost.db.xml");
+		UserOperator uo = UserOperator.getInstance("acm.db.xml");
 		String[] ret = uo.getAllUsers();
 		for (String u : ret) {
 			int cs = uo.countSolvedProblemsOfUser(u);
