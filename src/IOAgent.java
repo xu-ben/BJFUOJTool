@@ -135,14 +135,14 @@ public final class IOAgent {
 		 * 得到该文件的编码格式字符串
 		 */
 		String type = getCodeType(f);
-
+		BufferedReader br = null;
 		try {
 			FileInputStream fis = new FileInputStream(f);
 			/*
 			 * 指定读取文件时以type的编码格式读取
 			 */
 			InputStreamReader isr = new InputStreamReader(fis, type);
-			BufferedReader br = new BufferedReader(isr);
+			br = new BufferedReader(isr);
 			char[] content = new char[len];
 			int textLen = br.read(content);
 			int offset = 0;
@@ -153,8 +153,16 @@ public final class IOAgent {
 				offset = 1;
 			}
 			String ret = String.valueOf(content, offset, textLen - offset);
+			br.close();
 			return unifyLineSeparator(ret);
 		} catch (IOException ioe) {
+			try {
+				if (br != null) {
+					br.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			return null;
 		}
 	}

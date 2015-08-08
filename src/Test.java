@@ -10,6 +10,7 @@ public class Test {
 	/**
 	 * 文件读写代理对象
 	 */
+	@SuppressWarnings("unused")
 	private IOAgent ioa = IOAgent.getInstance();
 
 	/**

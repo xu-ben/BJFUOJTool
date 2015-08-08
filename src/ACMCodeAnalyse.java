@@ -10,6 +10,7 @@ import java.io.File;
  */
 public final class ACMCodeAnalyse {
 	
+	@SuppressWarnings("unused")
 	public static void work(File dir) {
 		SolutionOperator so = SolutionOperator.getInstance("acm.db.xml");		
 	}

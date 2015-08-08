@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.xml.sax.SAXException;
 
 /**
@@ -397,6 +399,7 @@ public final class ContestOperator {
 
 	}
 
+	@SuppressWarnings("unused")
 	private static void pro_experiment2015() {
 		ContestOperator co = ContestOperator.getInstance("acm.db.xml");
 		int[] contestid = { 64, 65, 66, 68, 69, 71, 74 };
@@ -419,6 +422,7 @@ public final class ContestOperator {
 
 	}
 
+	@SuppressWarnings("unused")
 	private static void cpp_xyy_2015() {
 		// ContestOperator co = ContestOperator.getInstance("166.db.xml");
 		// String cdir = "F:\\Cpp_XYY";
@@ -450,6 +454,7 @@ public final class ContestOperator {
 		co.exportExperimentData(cdir, cids);
 	}
 
+	@SuppressWarnings("unused")
 	private static void pro_exam2015() {
 		ContestOperator co = ContestOperator.getInstance("166.db.xml");
 		UserOperator uo = UserOperator.getInstance("166.db.xml");

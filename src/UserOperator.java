@@ -116,6 +116,7 @@ public final class UserOperator {
 		return reStr;
 	}
 
+	@SuppressWarnings("unused")
 	private static void setPasswordforCppExam2015() {
 		String str = "ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";// 字符集
 		final int bitnum = 8;
