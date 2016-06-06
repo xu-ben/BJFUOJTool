@@ -134,6 +134,24 @@ public final class UserOperator {
 		}
 	}
 
+	@SuppressWarnings("unused")
+	private static void setPasswordforProblemSolveExam2016() {
+		String str = "ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";// 字符集
+		final int bitnum = 8;
+		char[] arr = new char[bitnum];
+		UserOperator uo = UserOperator.getInstance("161.db.xml");
+		for (int i = 0; i < 120; i++) {
+			for (int j = 0; j < bitnum; j++) {
+				int t = (int) (Math.random() * str.length());
+				arr[j] = str.charAt(t);
+			}
+			String p = new String(arr);
+			String u = String.format("bjfu%04d", i);
+			uo.setPassword(u, p);
+			System.out.printf("%s, %s\n", u, p);
+		}
+	}
+
 	public String getNicknameOfUser() {
 		String s = null;
 		try {
@@ -369,12 +387,13 @@ public final class UserOperator {
 	 */
 	public static void main(String[] args) {
 //		recoverySolvedNum();
-		UserOperator uo = UserOperator.getInstance("acm.db.xml");
-		String[] ret = uo.getAllUsers();
-		for (String u : ret) {
-			int cs = uo.countSolvedProblemsOfUser(u);
-			System.out.printf("%s, %d\n", u, cs);
-		}
+//		UserOperator uo = UserOperator.getInstance("acm.db.xml");
+//		String[] ret = uo.getAllUsers();
+//		for (String u : ret) {
+//			int cs = uo.countSolvedProblemsOfUser(u);
+//			System.out.printf("%s, %d\n", u, cs);
+//		}
+		setPasswordforProblemSolveExam2016();
 	}
 
 
