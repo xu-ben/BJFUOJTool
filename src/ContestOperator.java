@@ -316,16 +316,19 @@ public final class ContestOperator {
 	}
 
 	/**
-	 * 筛掉不符合要求的但参加了比赛的用户名
+	 * 为了导出数据时筛掉不符合要求的但参加了比赛的用户的函数，当filter参数是true时，此函数会将不符合regex参数所表示正则表达式的用户名去掉
 	 * 
 	 * @param namelist
+	 * @param filter
+	 * @param regex
 	 * @return
 	 */
-	private static String[] treamNameList(ArrayList<String> namelist) {
+	private static String[] treamNameList(ArrayList<String> namelist,
+			boolean filter, String regex) {
 		int size = namelist.size();
 		for (int i = size - 1; i >= 0; i--) {
 			String name = namelist.get(i);
-			if (!name.matches("\\d+")) {
+			if (filter && !name.matches(regex)) {
 				namelist.remove(i);
 			}
 		}
@@ -335,24 +338,30 @@ public final class ContestOperator {
 	}
 
 	/**
+	 * 
 	 * 导出考试数据,包括学生提交的所有代码，ac代码以及考试期间用户登录情况
 	 * 
 	 * @param rootdir
 	 *            存储数据文件的根目录
 	 * @param cid
 	 *            比赛的数据库id
+	 * @param filter 是否用regex正则表达式来过滤参赛用户名，如果此值为true，则不满足regex正则表达式的用户名将被过滤
+	 * @param regex
 	 * @throws FileNotFoundException
 	 */
-	public void exportExamData(String rootdir, Integer cid)
-			throws FileNotFoundException {
+	public void exportExamData(String rootdir, Integer cid, boolean filter,
+			String regex) throws FileNotFoundException {
 		mkdir(rootdir);
 		String alldir = rootdir + "\\all";
 		mkdir(alldir);
-		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
-		getCodesToFilesFromAContest(cid, alldir, namelist);
+
+		String[] namelist = treamNameList(co.getNameListOfAContest(cid),
+				filter, regex);
+
+//		getCodesToFilesFromAContest(cid, alldir, namelist);
 		String acdir = rootdir + "\\ac";
 		mkdir(acdir);
-		getACCodeOfAContestToDir(cid, acdir, namelist);
+	//	getACCodeOfAContestToDir(cid, acdir, namelist);
 
 		Timestamp[] contestTime = getStartAndEndTimeofContest(cid);
 		PrintStream login_ip = new PrintStream(rootdir + "\\login_ip.csv");
@@ -361,8 +370,11 @@ public final class ContestOperator {
 		for (String name : namelist) {
 			getLoginDetail(name, contestTime[0], contestTime[1], login_detail);
 
-			login_ip.print(name);
 			String[] ips = uo.getLoginIPs(name, contestTime[0], contestTime[1]);
+			if (ips == null) {
+				continue;
+			}
+			login_ip.print(name);
 			for (String ip : ips) {
 				login_ip.print(", " + ip);
 			}
@@ -389,7 +401,8 @@ public final class ContestOperator {
 			String alldir = cdir + "\\all";
 			mkdir(alldir);
 
-			String[] namelist = treamNameList(co.getNameListOfAContest(cid));
+			String[] namelist = treamNameList(co.getNameListOfAContest(cid),
+					true, "\\d+");
 			co.getCodesToFilesFromAContest(cid, alldir, namelist);
 
 			String acdir = cdir + "\\ac";
@@ -412,7 +425,8 @@ public final class ContestOperator {
 			String alldir = cdir + "\\all";
 			mkdir(alldir);
 
-			String[] namelist = treamNameList(co.getNameListOfAContest(cid));
+			String[] namelist = treamNameList(co.getNameListOfAContest(cid),
+					true, "\\d+");
 			co.getCodesToFilesFromAContest(cid, alldir, namelist);
 
 			String acdir = cdir + "\\ac";
@@ -443,7 +457,7 @@ public final class ContestOperator {
 		// String cdir = "F:\\Exam";
 		// ContestOperator co = ContestOperator.getInstance(url, user, pass);
 		// try {
-		// co.exportExamData(cdir, 2);
+		// co.exportExamData(cdir, 2, true, "\\d+");
 		// } catch (FileNotFoundException e) {
 		// e.printStackTrace();
 		// }
@@ -459,7 +473,8 @@ public final class ContestOperator {
 		ContestOperator co = ContestOperator.getInstance("166.db.xml");
 		UserOperator uo = UserOperator.getInstance("166.db.xml");
 		int cid = 2;
-		String[] namelist = treamNameList(co.getNameListOfAContest(cid));
+		String[] namelist = treamNameList(co.getNameListOfAContest(cid), true,
+				"\\d+");
 		Timestamp[] contestTime = co.getStartAndEndTimeofContest(cid);
 		for (String name : namelist) {
 			System.out.print("学号：" + name);
@@ -473,12 +488,23 @@ public final class ContestOperator {
 		}
 	}
 
+	@SuppressWarnings("unused")
+	private static void pro_exam2016() {
+		ContestOperator co = ContestOperator.getInstance("161.db.xml");
+		String cdir = "H:\\问题求解与编程";
+		try {
+			co.exportExamData(cdir, 2, false, null);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		// cpp_exam2015_detail();
 		// cpp_xyy_2015();
-		cpp_exam_wsr_2015();
+		pro_exam2016();
 	}
 }
