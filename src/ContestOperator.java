@@ -345,7 +345,8 @@ public final class ContestOperator {
 	 *            存储数据文件的根目录
 	 * @param cid
 	 *            比赛的数据库id
-	 * @param filter 是否用regex正则表达式来过滤参赛用户名，如果此值为true，则不满足regex正则表达式的用户名将被过滤
+	 * @param filter
+	 *            是否用regex正则表达式来过滤参赛用户名，如果此值为true，则不满足regex正则表达式的用户名将被过滤
 	 * @param regex
 	 * @throws FileNotFoundException
 	 */
@@ -358,10 +359,10 @@ public final class ContestOperator {
 		String[] namelist = treamNameList(co.getNameListOfAContest(cid),
 				filter, regex);
 
-//		getCodesToFilesFromAContest(cid, alldir, namelist);
+		getCodesToFilesFromAContest(cid, alldir, namelist);
 		String acdir = rootdir + "\\ac";
 		mkdir(acdir);
-	//	getACCodeOfAContestToDir(cid, acdir, namelist);
+		getACCodeOfAContestToDir(cid, acdir, namelist);
 
 		Timestamp[] contestTime = getStartAndEndTimeofContest(cid);
 		PrintStream login_ip = new PrintStream(rootdir + "\\login_ip.csv");
@@ -499,12 +500,27 @@ public final class ContestOperator {
 		}
 	}
 
+	@SuppressWarnings("unused")
+	private static void cpp_exam2016() {
+		ContestOperator co = ContestOperator.getInstance("161.db.xml");
+		String cdir = "H:\\2016cpp\\";
+		try {
+			for (int i = 3; i <= 6; i++) {
+				co.exportExamData(cdir + i, i, false, null);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		// cpp_exam2015_detail();
 		// cpp_xyy_2015();
-		pro_exam2016();
+		// pro_exam2016();
+		cpp_exam2016();
+
 	}
 }
